@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>شاشة الانتظار</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      direction: rtl;
+    }
+
+    .slice {
+      flex: 1;
+      border-left: 2px solid #333;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .slice:first-child {
+      border-left: none;
+    }
+
+    .slice-title {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #444;
+      padding-bottom: 10px;
+    }
+
+    .name {
+      font-size: 32px;
+      text-align: center;
+      margin: 10px 0;
+      transition: all 0.3s;
+    }
+
+    .status-ينتظر {
+      color: white;
+    }
+
+    .status-عند_الطبيب {
+      color: #ffc107;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="slice">
+    <div class="slice-title">كانديلا</div>
+    <div id="candela"></div>
+  </div>
+  <div class="slice">
+    <div class="slice-title">أكين برو</div>
+    <div id="akinpro"></div>
+  </div>
+  <div class="slice">
+    <div class="slice-title">دكا موتوز</div>
+    <div id="deka"></div>
+  </div>
+
+  <script>
+    const spokenQueues = new Set(); // لتجنب تكرار النطق
+
+    async function fetchData() {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbzp-B64h40NW2oEWANXJH93s8gPDLvoXD6_MuHbM1CXsCBXpR_xXbem3zY2JQhDEHhK/exec");
+      const data = await res.json();
+
+      function speakArabic(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "ar-SA";
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function render(list, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+
+        list.forEach(function(item) {
+          const div = document.createElement("div");
+
+          const statusClass = (item.status === "عند الطبيب") ? "status-عند_الطبيب" : "status-ينتظر";
+          div.className = "name " + statusClass;
+
+          const parts = item.text.split(") ");
+          const queue = parts[0].replace("(", "");
+          const name = parts[1];
+
+          div.textContent = "(" + queue + ") " + name;
+          container.appendChild(div);
+
+          if (item.status === "عند الطبيب" && !spokenQueues.has(queue)) {
+            speakArabic("حان الدور، رقم " + queue);
+            spokenQueues.add(queue);
+          }
+        });
+      }
+
+      render(data.candela, "candela");
+      render(data.akinpro, "akinpro");
+      render(data.deka, "deka");
+    }
+
+    fetchData();
+    setInterval(fetchData, 10000); // كل 10 ثواني
+  </script>
+</body>
+</html>
