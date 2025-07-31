@@ -50,6 +50,19 @@
       color: #ffc107;
       font-weight: bold;
     }
+
+    button {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -66,25 +79,33 @@
     <div id="deka"></div>
   </div>
 
+  <button onclick="enableVoice()">تشغيل الصوت</button>
+
   <script>
-    const spokenQueues = new Set(); // لتجنب تكرار النطق
+    const spokenQueues = new Set();
+    let voiceEnabled = false;
+
+    function enableVoice() {
+      voiceEnabled = true;
+      speakArabic("تم تفعيل الصوت");
+    }
+
+    function speakArabic(text) {
+      if (!voiceEnabled) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ar-SA";
+      window.speechSynthesis.speak(utterance);
+    }
 
     async function fetchData() {
       const res = await fetch("https://script.google.com/macros/s/AKfycbzp-B64h40NW2oEWANXJH93s8gPDLvoXD6_MuHbM1CXsCBXpR_xXbem3zY2JQhDEHhK/exec");
       const data = await res.json();
-
-      function speakArabic(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "ar-SA";
-        window.speechSynthesis.speak(utterance);
-      }
 
       function render(list, containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
 
         list.forEach(function(item) {
-          // تجاهل الحالة "حجز ليوم اخر"
           if (item.status === "حجز ليوم اخر") return;
 
           const div = document.createElement("div");
@@ -100,7 +121,7 @@
           container.appendChild(div);
 
           if (item.status === "عند الطبيب" && !spokenQueues.has(queue)) {
-            speakArabic("حان الدور، رقم " + queue);
+            speakArabic("حان دورك، رقم السرة " + queue);
             spokenQueues.add(queue);
           }
         });
@@ -112,7 +133,7 @@
     }
 
     fetchData();
-    setInterval(fetchData, 10000); // كل 10 ثواني
+    setInterval(fetchData, 10000);
   </script>
 </body>
 </html>
