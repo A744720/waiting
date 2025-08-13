@@ -42,7 +42,7 @@
       transition: all 0.3s;
     }
 
-    .status-ينتظر {
+    .status-ينتضر {
       color: white;
     }
 
@@ -58,7 +58,7 @@
     <div id="candela"></div>
   </div>
   <div class="slice">
-    <div class="slice-title">أكين برو</div>
+    <div class="slice-title">اكين برو</div>
     <div id="akinpro"></div>
   </div>
   <div class="slice">
@@ -88,7 +88,7 @@
 
     function speakArabicNumber(number) {
       let text = number.toString().split("").join(" ");
-      speakArabic("حان دورك... الرقم ");
+      speakArabic("حان دورك... الرقم " + text);
     }
 
     async function fetchData() {
@@ -99,15 +99,20 @@
         const container = document.getElementById(containerId);
         container.innerHTML = "";
 
-        list.forEach(function(item) {
+        // ترتيب حسب رقم السرة
+        list.sort((a, b) => {
+          const numA = parseInt(a.text.split(")")[0].replace("(", "").trim());
+          const numB = parseInt(b.text.split(")")[0].replace("(", "").trim());
+          return numA - numB;
+        }).forEach(function(item) {
           if (item.status === "حجز ليوم اخر") return;
 
           const div = document.createElement("div");
-          const statusClass = (item.status === "عند الطبيب") ? "status-عند_الطبيب" : "status-ينتظر";
+          const statusClass = (item.status === "عند الطبيب") ? "status-عند_الطبيب" : "status-ينتضر";
           div.className = "name " + statusClass;
 
           const parts = item.text.split(") ");
-          const queue = parts[0].replace("(", "");
+          const queue = parts[0].replace("(", "").trim();
           const name = parts[1];
 
           div.textContent = "(" + queue + ") " + name;
